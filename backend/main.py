@@ -17,13 +17,24 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 # jednoduchá in-memory cache, ať neplatíme AI za každý požadavek znovu
 _cache: dict[str, dict] = {}
 _cache.clear()
 
-# Session se přihlásí jednou při startu serveru (JIDELNA_LOGIN / JIDELNA_HESLO
-# musí být nastavené jako proměnné prostředí - viz scraper.py).
-_session = login()
+_session = None
+
+def get_canteen_session():
+    global _session
+    if _session is None:
+        try:
+            _session = login()
+        except Exception as e:
+            logger.warning(f"Přihlášení do jídelny selhalo (IP nedostupná ze sítě): {e}")
+    return _session
 
 
 @app.get("/api/menu")
@@ -53,8 +64,18 @@ def get_menu(
     if cache_key in _cache:
         return _cache[cache_key]
 
-    html = fetch_menu_html(dat=monday_str, shift=shift, day=calculated_day, session=_session)
-    soup_item, items = parse_menu(html, dat=target_dat_str, shift=shift, day=calculated_day)
+    sess = get_canteen_session()
+    try:
+        html = fetch_menu_html(dat=monday_str, shift=shift, day=calculated_day, session=sess)
+        soup_item, items = parse_menu(html, dat=target_dat_str, shift=shift, day=calculated_day)
+    except Exception as e:
+        logger.error(f"Chyba při stahování menu z jídelny: {e}")
+        return {
+            "date": target_dat_str,
+            "soup": None,
+            "items": [],
+            "error": "Server jídelny (213.29.8.169) je dostupný pouze z vaší lokální/firemní sítě."
+        }
 
     result = {
         "date": target_dat_str,

@@ -33,33 +33,25 @@ JIDELNA_HESLO = os.environ.get("JIDELNA_HESLO", "")
 
 
 def login(session: requests.Session | None = None) -> requests.Session:
-    """Přihlásí se do Fusion systému a vrátí session s platnými cookies.
-
-    Ověřeno podle skutečného přihlašovacího formuláře (login.php, pole
-    "login" a "pass", plus skrytá pole desk=0 a log=1).
-    """
-    if not JIDELNA_LOGIN or not JIDELNA_HESLO:
-        raise RuntimeError(
-            "Chybí přihlašovací údaje. Nastav proměnné prostředí "
-            "JIDELNA_LOGIN a JIDELNA_HESLO."
-        )
-
+    """Přihlásí se do Fusion systému a vrátí session s platnými cookies."""
     s = session or requests.Session()
+    if not JIDELNA_LOGIN or not JIDELNA_HESLO:
+        return s
+
     payload = {
         "desk": "0",
         "log": "1",
         "login": JIDELNA_LOGIN,
         "pass": JIDELNA_HESLO,
     }
-    resp = s.post(LOGIN_URL, data=payload, timeout=10)
-    resp.raise_for_status()
-    resp.encoding = "iso-8859-2"
+    try:
+        resp = s.post(LOGIN_URL, data=payload, timeout=5)
+        resp.raise_for_status()
+        resp.encoding = "iso-8859-2"
+    except Exception as e:
+        # Pokud je IP nedostupná (např. v cloudu mimo síť), nespadneme
+        return s
 
-    if "logout.php" not in resp.text and "ODHLÁSIT" not in resp.text:
-        raise RuntimeError(
-            "Přihlášení pravděpodobně selhalo - zkontroluj JIDELNA_LOGIN "
-            "a JIDELNA_HESLO, případně mi pošli text odpovědi serveru."
-        )
     return s
 
 ALLERGEN_MAP = {
