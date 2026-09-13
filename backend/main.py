@@ -91,6 +91,15 @@ def get_menu(
     return result
 
 
+import os
+from fastapi.staticfiles import StaticFiles
+
 @app.get("/api/health")
 def health():
     return {"status": "ok"}
+
+
+# Servírování celého frontendu (HTML, CSS, JS, fotky) přímo z hlavního serveru
+frontend_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "frontend"))
+if os.path.exists(frontend_dir):
+    app.mount("/", StaticFiles(directory=frontend_dir, html=True), name="frontend")
