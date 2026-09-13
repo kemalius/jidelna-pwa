@@ -1,5 +1,5 @@
-// Uprav na adresu tvého nasazeného backendu (Render/Vercel/RPi)
-const API_BASE = "http://localhost:8000";
+// Automaticky použije aktuální doménu (Render server nebo localhost)
+const API_BASE = window.location.origin.includes("localhost") ? "http://localhost:8000" : window.location.origin;
 
 const menuList = document.getElementById("menu-list");
 const dateLabel = document.getElementById("date-label");
