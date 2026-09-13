@@ -1,5 +1,5 @@
-// Automaticky použije aktuální doménu (Render server nebo localhost)
-const API_BASE = window.location.origin.includes("localhost") ? "http://localhost:8000" : window.location.origin;
+// Relativní cesta - funguje 100% na jakékoliv doméně (Render.com i localhost) bez CORS chyb
+const API_BASE = "";
 
 const menuList = document.getElementById("menu-list");
 const dateLabel = document.getElementById("date-label");
