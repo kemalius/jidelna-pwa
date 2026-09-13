@@ -1,11 +1,9 @@
 services:
-  # Backend API Služba (Python FastAPI)
   - type: web
-    name: jidelna-backend
+    name: jidelna-pwa
     env: python
-    rootDir: backend
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn -w 1 -k uvicorn.workers.UvicornWorker main:app
+    startCommand: uvicorn backend.main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: JIDELNA_LOGIN
         sync: false
@@ -14,10 +12,3 @@ services:
       - key: GEMINI_API_KEY
         sync: false
 
-  # Frontend PWA Služba (Statické webové stránky)
-  - type: web
-    name: jidelna-frontend
-    env: static
-    rootDir: frontend
-    buildCommand: ""
-    staticPublishPath: .
